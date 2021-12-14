@@ -12,20 +12,26 @@ fn main() {
     println!("cargo:rerun-if-changed=build.rs");
 
     let arch = var("CARGO_CFG_TARGET_ARCH").unwrap();
-    let asm_name = format!("{}/{}.S", OUTLINE_PATH, arch);
-    let os_name = var("CARGO_CFG_TARGET_OS").unwrap();
-    let is_x32 = arch == "x86_64" && var("CARGO_CFG_TARGET_POINTER_WIDTH").unwrap() == "32";
     println!("cargo:rerun-if-env-changed=CARGO_CFG_TARGET_ARCH");
+
+    let os_name = var("CARGO_CFG_TARGET_OS").unwrap();
+    println!("cargo:rerun-if-env-changed=CARGO_CFG_TARGET_OS");
+
+    let is_x32 = arch == "x86_64" && var("CARGO_CFG_TARGET_POINTER_WIDTH").unwrap() == "32";
+    println!("cargo:rerun-if-env-changed=CARGO_CFG_TARGET_POINTER_WIDTH");
+
+    let asm_name = format!("{}/{}.S", OUTLINE_PATH, arch);
+
+    let can_linux_raw = os_name == "linux" && std::fs::metadata(&asm_name).is_ok() && !is_x32;
+    let can_wasi = os_name == "wasi";
 
     // If rustix_use_libc is set, or if we're on an architecture/OS that doesn't
     // have raw syscall support, use libc.
-    if var("CARGO_CFG_RUSTIX_USE_LIBC").is_ok()
-        || os_name != "linux"
-        || std::fs::metadata(&asm_name).is_err()
-        || is_x32
-    {
+    if var("CARGO_CFG_RUSTIX_USE_LIBC").is_ok() || (!can_linux_raw && !can_wasi) {
         use_feature("libc");
-    } else {
+    } else if can_wasi {
+        use_feature("wasi");
+    } else if can_linux_raw {
         use_feature("linux_raw");
 
         use_feature_or_nothing("rustc_attrs");
