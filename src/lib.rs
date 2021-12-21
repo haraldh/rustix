@@ -45,7 +45,6 @@
 
 #![deny(missing_docs)]
 #![cfg_attr(linux_raw, deny(unsafe_code))]
-#![cfg_attr(linux_raw_inline_asm, feature(asm))]
 #![cfg_attr(any(rustc_attrs, feature = "rustc-dep-of-std"), feature(rustc_attrs))]
 #![cfg_attr(doc_cfg, feature(doc_cfg))]
 #![cfg_attr(target_os = "wasi", feature(wasi_ext))]

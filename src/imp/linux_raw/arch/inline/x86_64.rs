@@ -1,3 +1,5 @@
+use core::arch::asm;
+
 use crate::imp::linux_raw::reg::{
     ArgReg, FromAsm, RetReg, SyscallNumber, ToAsm, A0, A1, A2, A3, A4, A5, R0,
 };
